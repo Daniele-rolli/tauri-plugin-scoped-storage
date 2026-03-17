@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #18251e;
+  --color-moss: #2f5d50;
+  --color-sand: #f4ead7;
+  --color-fog: #eef4f1;
+  --color-sun: #efb765;
+  --color-coral: #d9785f;
+  --font-sans: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+@layer base {
+  html {
+    @apply bg-[#f6efdf] text-[15px] text-ink antialiased;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply min-h-screen bg-[radial-gradient(circle_at_top,_rgba(239,183,101,0.38),_transparent_34%),linear-gradient(180deg,_#f9eed8_0%,_#eef4f1_56%,_#e6f0ef_100%)];
+    overscroll-behavior: none;
+  }
+
+  button,
+  input,
+  textarea {
+    @apply font-sans;
+  }
+
+  input,
+  textarea {
+    @apply placeholder:text-slate-400;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-[28px] border border-white/60 bg-white/75 p-5 shadow-[0_18px_60px_rgba(20,38,31,0.12)] backdrop-blur;
+  }
+
+  .field-label {
+    @apply mb-2 block text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-500;
+  }
+
+  .field-input {
+    @apply w-full rounded-2xl border border-slate-200/80 bg-white/90 px-4 py-3 text-base text-slate-800 outline-none transition focus:border-moss focus:ring-4 focus:ring-moss/10 sm:text-sm;
+  }
+
+  .action-button {
+    @apply inline-flex min-h-11 items-center justify-center rounded-2xl bg-moss px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(47,93,80,0.28)] transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
+  }
+
+  .secondary-button {
+    @apply inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 text-sm font-semibold text-slate-700 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:text-slate-400;
+  }
+
+  .danger-button {
+    @apply inline-flex min-h-11 items-center justify-center rounded-2xl bg-coral px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(217,120,95,0.22)] transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
+  }
+
+  .chip-button {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm transition active:scale-[0.99];
+  }
+}
