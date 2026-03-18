@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-scoped-storage"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Daniele Rolli"]
 description = "Tauri 2 plugin for user-approved scoped folder access on Android and iOS"
 license = "MIT"
