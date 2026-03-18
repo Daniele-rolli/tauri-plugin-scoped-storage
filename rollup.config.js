@@ -1,31 +1,38 @@
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { cwd } from 'node:process'
-import typescript from '@rollup/plugin-typescript'
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { cwd } from "node:process";
+import typescript from "@rollup/plugin-typescript";
 
-const pkg = JSON.parse(readFileSync(join(cwd(), 'package.json'), 'utf8'))
+const pkg = JSON.parse(readFileSync(join(cwd(), "package.json"), "utf8"));
+const entry = pkg.exports?.["."];
+
+if (!entry?.import || !entry?.require) {
+  throw new Error(
+    'Invalid package.json exports: expected exports["."].import and exports["."].require',
+  );
+}
 
 export default {
-  input: 'guest-js/index.ts',
+  input: "guest-js/index.ts",
   output: [
     {
-      file: pkg.exports.import,
-      format: 'esm'
+      file: entry.import,
+      format: "esm",
     },
     {
-      file: pkg.exports.require,
-      format: 'cjs'
-    }
+      file: entry.require,
+      format: "cjs",
+    },
   ],
   plugins: [
     typescript({
       declaration: true,
-      declarationDir: dirname(pkg.exports.import)
-    })
+      declarationDir: "dist-js",
+    }),
   ],
   external: [
     /^@tauri-apps\/api/,
     ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.peerDependencies || {})
-  ]
-}
+    ...Object.keys(pkg.peerDependencies || {}),
+  ],
+};
