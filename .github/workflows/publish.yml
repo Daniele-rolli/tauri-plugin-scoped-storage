@@ -102,7 +102,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: yarn
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Verify Yarn
+        run: yarn --version
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -139,18 +144,20 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: [test-rust, test-js]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node for npm trusted publishing
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
           registry-url: "https://registry.npmjs.org"
-          cache: yarn
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Verify Yarn
+        run: yarn --version
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -160,6 +167,8 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   github-release:
     name: Create GitHub Release
