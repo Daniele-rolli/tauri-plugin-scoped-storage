@@ -10,7 +10,6 @@ yarn-error.log*
 npm-debug.log*
 package-lock.json
 .vscode/settings.json
-yarn.lock
 
 /.tauri
 /target
