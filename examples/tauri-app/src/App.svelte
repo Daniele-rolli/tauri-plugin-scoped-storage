@@ -204,7 +204,7 @@
         return
       }
 
-      const bytes = Uint8Array.from([0, 1, 2, 3, 4, 5, 42, 99])
+      const bytes = Uint8Array.from([0, 1, 2, 3, 4, 5, 42, 99, 255])
       await writeFile(folder.id, binaryPath, bytes, { mimeType: 'application/octet-stream', recursive: true })
       log(`Wrote ${bytes.byteLength} binary bytes to ${binaryPath}.`)
       await refreshEntries()

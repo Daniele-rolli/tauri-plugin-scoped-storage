@@ -265,7 +265,8 @@ class ScopedStoragePlugin(private val activity: Activity) : Plugin(activity) {
                 val file = requireFile(args.folderId, args.path)
                 val bytes = activity.contentResolver.openInputStream(file.uri)?.use { it.readAllBytesCompat() }
                     ?: fail(ErrorCodes.IO_ERROR, "Failed to open input stream")
-                invoke.resolve(JSObject().apply { put("data", JSArray(bytes.toList())) })
+		            val unsigned = bytes.map { it.toInt() and 0xFF }
+                invoke.resolve(JSObject().apply { put("data", JSArray(unsigned.toList())) })
             } catch (error: Throwable) {
                 invoke.rejectScoped(error)
             }
