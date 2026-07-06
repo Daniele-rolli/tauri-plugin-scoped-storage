@@ -468,8 +468,15 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
             return
         }
 
+        guard url.startAccessingSecurityScopedResource() else {
+            pendingInvoke?.reject("\(scopedStorageNativeErrorPrefix):\(ScopedStorageErrorCode.permissionDenied.rawValue):Failed to access security-scoped resource")
+            pendingInvoke = nil
+            return
+        }
+        defer { url.stopAccessingSecurityScopedResource() }
+
         do {
-            let bookmark = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+            let bookmark = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
             let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
             let stored = folderStore.save(bookmark: bookmark, name: name, uri: url.absoluteString)
             pendingInvoke?.resolve(PickFolderResponseDTO(folder: folderDTO(stored)))
@@ -514,15 +521,20 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         var stale = false
         let url = try URL(
             resolvingBookmarkData: bookmark,
-            options: [],
+            options: .withSecurityScope,
             relativeTo: nil,
             bookmarkDataIsStale: &stale
         )
 
         if stale {
-            let refreshed = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+            guard url.startAccessingSecurityScopedResource() else {
+                throw scopedStorageError(.permissionDenied, "Failed to access security-scoped resource for stale bookmark refresh")
+            }
+
+            let refreshed = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
             let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
             folderStore.update(id: folderId, bookmark: refreshed, name: name, uri: url.absoluteString)
+            url.stopAccessingSecurityScopedResource()
         }
 
         guard url.startAccessingSecurityScopedResource() else {
