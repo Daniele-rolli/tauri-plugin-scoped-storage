@@ -123,7 +123,7 @@ impl<R: Runtime> ScopedStorage<R> {
         self.run_mobile("copy", req)
     }
 
-    pub fn r#move(&self, req: MoveRequest) -> Result<(), ScopedStorageError> {
+    pub fn mv(&self, req: MoveRequest) -> Result<(), ScopedStorageError> {
         self.run_mobile("move", req)
     }
 

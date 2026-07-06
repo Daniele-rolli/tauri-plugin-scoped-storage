@@ -49,7 +49,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::remove_file,
             commands::remove_dir,
             commands::copy,
-            commands::r#move,
+            commands::mv,
             commands::rename,
             commands::truncate,
         ])

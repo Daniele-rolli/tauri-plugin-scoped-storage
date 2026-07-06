@@ -221,10 +221,7 @@ pub fn copy<R: Runtime>(app: AppHandle<R>, mut req: CopyRequest) -> Result<(), S
 }
 
 #[tauri::command]
-pub fn r#move<R: Runtime>(
-    app: AppHandle<R>,
-    mut req: MoveRequest,
-) -> Result<(), ScopedStorageError> {
+pub fn mv<R: Runtime>(app: AppHandle<R>, mut req: MoveRequest) -> Result<(), ScopedStorageError> {
     req.from_folder_id = normalize_folder_id(&req.from_folder_id)?;
     req.to_folder_id = normalize_folder_id(&req.to_folder_id)?;
     req.from_path = normalize_required_path(&req.from_path)?;
@@ -236,7 +233,7 @@ pub fn r#move<R: Runtime>(
         &req.to_folder_id,
         &req.to_path,
     )?;
-    app.state::<ScopedStorage<R>>().inner().r#move(req)
+    app.state::<ScopedStorage<R>>().inner().mv(req)
 }
 
 #[tauri::command]

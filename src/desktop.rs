@@ -92,7 +92,7 @@ impl<R: Runtime> ScopedStorage<R> {
         Err(ScopedStorageError::Unsupported)
     }
 
-    pub fn r#move(&self, _req: MoveRequest) -> Result<(), ScopedStorageError> {
+    pub fn mv(&self, _req: MoveRequest) -> Result<(), ScopedStorageError> {
         Err(ScopedStorageError::Unsupported)
     }
 

@@ -104,7 +104,10 @@ function isErrorPayload(e: unknown): e is ScopedStorageErrorPayload {
   );
 }
 
-async function invokeCommand<T>(command: string, payload?: Record<string, unknown>): Promise<T> {
+async function invokeCommand<T>(
+  command: string,
+  payload?: Record<string, unknown>,
+): Promise<T> {
   try {
     return await invoke<T>(`plugin:scoped-storage|${command}`, payload);
   } catch (raw: unknown) {
@@ -120,7 +123,9 @@ export async function pickFolder(): Promise<FolderHandle> {
 }
 
 export async function forgetFolder(folderId: string): Promise<void> {
-  return invokeCommand("forget_folder", { folderId: requireNonEmptyString("folderId", folderId) });
+  return invokeCommand("forget_folder", {
+    folderId: requireNonEmptyString("folderId", folderId),
+  });
 }
 
 export async function listFolders(): Promise<FolderHandle[]> {
@@ -128,10 +133,15 @@ export async function listFolders(): Promise<FolderHandle[]> {
 }
 
 export async function getFolderInfo(folderId: string): Promise<FolderHandle> {
-  return invokeCommand("get_folder_info", { req: { folderId: requireNonEmptyString("folderId", folderId) } });
+  return invokeCommand("get_folder_info", {
+    req: { folderId: requireNonEmptyString("folderId", folderId) },
+  });
 }
 
-export async function readDir(folderId: string, path?: string): Promise<DirEntry[]> {
+export async function readDir(
+  folderId: string,
+  path?: string,
+): Promise<DirEntry[]> {
   return invokeCommand("read_dir", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),
@@ -161,7 +171,10 @@ export async function exists(folderId: string, path: string): Promise<boolean> {
   return response.exists;
 }
 
-export async function readFile(folderId: string, path: string): Promise<Uint8Array> {
+export async function readFile(
+  folderId: string,
+  path: string,
+): Promise<Uint8Array> {
   const response = await invokeCommand<{ data: number[] }>("read_file", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),
@@ -189,7 +202,10 @@ export async function writeFile(
   });
 }
 
-export async function readTextFile(folderId: string, path: string): Promise<string> {
+export async function readTextFile(
+  folderId: string,
+  path: string,
+): Promise<string> {
   const response = await invokeCommand<{ contents: string }>("read_text_file", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),
@@ -199,13 +215,19 @@ export async function readTextFile(folderId: string, path: string): Promise<stri
   return response.contents;
 }
 
-export async function readTextFileLines(folderId: string, path: string): Promise<string[]> {
-  const response = await invokeCommand<{ lines: string[] }>("read_text_file_lines", {
-    req: {
-      folderId: requireNonEmptyString("folderId", folderId),
-      path: requireNonEmptyString("path", path),
+export async function readTextFileLines(
+  folderId: string,
+  path: string,
+): Promise<string[]> {
+  const response = await invokeCommand<{ lines: string[] }>(
+    "read_text_file_lines",
+    {
+      req: {
+        folderId: requireNonEmptyString("folderId", folderId),
+        path: requireNonEmptyString("path", path),
+      },
     },
-  });
+  );
   return response.lines;
 }
 
@@ -257,7 +279,11 @@ export async function appendTextFile(
   });
 }
 
-export async function mkdir(folderId: string, path: string, recursive = false): Promise<void> {
+export async function mkdir(
+  folderId: string,
+  path: string,
+  recursive = false,
+): Promise<void> {
   return invokeCommand("mkdir", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),
@@ -267,7 +293,10 @@ export async function mkdir(folderId: string, path: string, recursive = false): 
   });
 }
 
-export async function removeFile(folderId: string, path: string): Promise<void> {
+export async function removeFile(
+  folderId: string,
+  path: string,
+): Promise<void> {
   return invokeCommand("remove_file", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),
@@ -276,7 +305,11 @@ export async function removeFile(folderId: string, path: string): Promise<void> 
   });
 }
 
-export async function removeDir(folderId: string, path: string, recursive = false): Promise<void> {
+export async function removeDir(
+  folderId: string,
+  path: string,
+  recursive = false,
+): Promise<void> {
   return invokeCommand("remove_dir", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),
@@ -308,7 +341,7 @@ export async function move(
   toFolderId: string,
   toPath: string,
 ): Promise<void> {
-  return invokeCommand("move", {
+  return invokeCommand("mv", {
     req: {
       fromFolderId: requireNonEmptyString("fromFolderId", fromFolderId),
       fromPath: requireNonEmptyString("fromPath", fromPath),
@@ -320,7 +353,11 @@ export async function move(
 
 export const mv = move;
 
-export async function rename(folderId: string, fromPath: string, toPath: string): Promise<void> {
+export async function rename(
+  folderId: string,
+  fromPath: string,
+  toPath: string,
+): Promise<void> {
   return invokeCommand("rename", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),
@@ -330,7 +367,11 @@ export async function rename(folderId: string, fromPath: string, toPath: string)
   });
 }
 
-export async function truncate(folderId: string, path: string, len: number): Promise<void> {
+export async function truncate(
+  folderId: string,
+  path: string,
+  len: number,
+): Promise<void> {
   return invokeCommand("truncate", {
     req: {
       folderId: requireNonEmptyString("folderId", folderId),

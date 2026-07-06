@@ -16,7 +16,7 @@ const COMMANDS: &[&str] = &[
     "remove_file",
     "remove_dir",
     "copy",
-    "move",
+    "mv",
     "rename",
     "truncate",
 ];
