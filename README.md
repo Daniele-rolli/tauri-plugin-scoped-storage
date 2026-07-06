@@ -2,13 +2,12 @@
 
 A Tauri 2 plugin for user-approved folder access on Android and iOS.
 
-Unlike `@tauri-apps/plugin-fs`, which works with app-owned paths and base directories, this plugin lets users explicitly pick a folder at runtime. The plugin stores a persistent handle to that folder so your app can read and write inside it across sessions — without ever asking for broad storage permissions.
+Unlike `@tauri-apps/plugin-fs`, which works with app-owned paths and base directories, this plugin lets users explicitly pick a folder at runtime. The plugin stores a persistent handle to that folder so your app can read and write inside it across sessions, without ever asking for broad storage permissions.
 
 - **Android** uses the Storage Access Framework with persisted tree URI permissions.
 - **iOS** uses `UIDocumentPickerViewController` with persisted security-scoped bookmarks.
 - **Desktop** targets compile cleanly and return stable `UNSUPPORTED` errors.
 
----
 
 ## Supported Platforms
 
@@ -21,8 +20,6 @@ Unlike `@tauri-apps/plugin-fs`, which works with app-owned paths and base direct
 | Linux    | ⛔ Returns `UNSUPPORTED` |
 
 Minimum requirements: Android API 21+, iOS 14+, Rust 1.77.2+.
-
----
 
 ## Installation
 
@@ -64,8 +61,6 @@ Grant the plugin permission in your app's capability file (e.g. `src-tauri/capab
   ]
 }
 ```
-
----
 
 ## Quick Start
 
@@ -109,7 +104,6 @@ try {
 }
 ```
 
----
 
 ## API Reference
 
@@ -152,8 +146,6 @@ Removes a persisted folder handle. The app will no longer have access to that fo
 await forgetFolder(folder.id);
 ```
 
----
-
 ### Reading Files
 
 #### `readTextFile(folderId, path): Promise<string>`
@@ -179,8 +171,6 @@ Reads a binary file as raw bytes.
 ```ts
 const bytes = await readFile(folder.id, "data.bin");
 ```
-
----
 
 ### Writing Files
 
@@ -332,8 +322,6 @@ Deletes a single file.
 await removeFile(folder.id, "tmp/scratch.txt");
 ```
 
----
-
 ### Truncating Files
 
 #### `truncate(folderId, path, len): Promise<void>`
@@ -344,16 +332,12 @@ Sets the exact byte length of a file. Shrinks the file if `len` is less than the
 await truncate(folder.id, "data.bin", 512);
 ```
 
----
-
 ### Utilities
 
 #### `encodeUtf8(value: string): Uint8Array`
 #### `decodeUtf8(data: Uint8Array): string`
 
 Convenience wrappers around `TextEncoder` / `TextDecoder` for converting between strings and byte arrays when working with `readFile` / `writeFile`.
-
----
 
 ## Error Handling
 
@@ -395,21 +379,17 @@ try {
 | `UNSUPPORTED` | The current platform does not support this operation |
 | `NATIVE_ERROR` | An unexpected native error not covered by the codes above |
 
----
-
 ## Path Rules
 
 All paths must be **relative** to the picked folder. The Rust layer enforces these rules before any native code runs:
 
 - Backslashes (`\`) are normalised to `/`.
 - Empty segments and `.` are collapsed (`./notes//file.txt` → `notes/file.txt`).
-- `..` is rejected — paths cannot escape the picked folder.
+- `..` is rejected, paths cannot escape the picked folder.
 - Absolute paths (starting with `/` or `~`) are rejected.
 - URI-style and drive-style prefixes (`content://`, `file://`, `C:`) are rejected.
 
 The native Android and iOS layers apply equivalent checks as a second line of defence.
-
----
 
 ## Intentionally Unsupported
 
@@ -419,8 +399,6 @@ The following are out of scope for the current version:
 - File watching (`watch`, `watchImmediate`)
 - Symbolic link stat (`lstat`)
 - Desktop filesystem access
-
----
 
 ## License
 
