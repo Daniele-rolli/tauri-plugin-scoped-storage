@@ -21,6 +21,8 @@ pub enum ScopedStorageError {
     Cancelled,
     #[error("invalid argument: {0}")]
     InvalidArgument(String),
+    #[error("stale bookmark: {0}")]
+    StaleBookmark(String),
     #[error("io error: {0}")]
     Io(String),
     #[error("native error: {0}")]
@@ -45,6 +47,7 @@ impl ScopedStorageError {
             Self::PermissionDenied => "PERMISSION_DENIED",
             Self::Cancelled => "CANCELLED",
             Self::InvalidArgument(_) => "INVALID_ARGUMENT",
+            Self::StaleBookmark(_) => "STALE_BOOKMARK",
             Self::Io(_) => "IO_ERROR",
             Self::Native(_) => "NATIVE_ERROR",
         }
@@ -69,6 +72,7 @@ impl ScopedStorageError {
             "PERMISSION_DENIED" => Self::PermissionDenied,
             "CANCELLED" => Self::Cancelled,
             "INVALID_ARGUMENT" => Self::InvalidArgument(message),
+            "STALE_BOOKMARK" => Self::StaleBookmark(message),
             "IO_ERROR" => Self::Io(message),
             "NATIVE_ERROR" => Self::Native(message),
             _ => Self::Native(message),
@@ -105,6 +109,8 @@ impl ScopedStorageError {
             Self::InvalidArgument(message.to_string())
         } else if normalized.contains("unsupported") {
             Self::Unsupported
+        } else if normalized.contains("stale") || normalized.contains("bookmark") {
+            Self::StaleBookmark(message.to_string())
         } else if normalized.contains("io") || normalized.contains("stream") {
             Self::Io(message.to_string())
         } else {

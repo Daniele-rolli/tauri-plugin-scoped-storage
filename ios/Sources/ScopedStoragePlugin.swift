@@ -258,7 +258,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
             let args = try invoke.parseArgs(ReadFileArgs.self)
             let data = try self.withFolderURL(folderId: args.folderId) { folderURL in
                 let target = try self.requireFile(base: folderURL, relPath: args.path)
-                return try Data(contentsOf: target)
+                return try self.coordinatedRead(at: target) { try Data(contentsOf: $0) }
             }
             return ReadFileResponseDTO(data: Array(data))
         }
@@ -269,7 +269,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
             let args = try invoke.parseArgs(ReadFileArgs.self)
             let contents = try self.withFolderURL(folderId: args.folderId) { folderURL in
                 let target = try self.requireFile(base: folderURL, relPath: args.path)
-                let data = try Data(contentsOf: target)
+                let data = try self.coordinatedRead(at: target) { try Data(contentsOf: $0) }
                 guard let string = String(data: data, encoding: .utf8) else {
                     throw scopedStorageError(.ioError, "File is not valid UTF-8")
                 }
@@ -284,7 +284,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
             let args = try invoke.parseArgs(ReadFileArgs.self)
             let lines = try self.withFolderURL(folderId: args.folderId) { folderURL in
                 let target = try self.requireFile(base: folderURL, relPath: args.path)
-                let data = try Data(contentsOf: target)
+                let data = try self.coordinatedRead(at: target) { try Data(contentsOf: $0) }
                 guard let string = String(data: data, encoding: .utf8) else {
                     throw scopedStorageError(.ioError, "File is not valid UTF-8")
                 }
@@ -476,7 +476,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         defer { url.stopAccessingSecurityScopedResource() }
 
         do {
-            let bookmark = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+            let bookmark = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
             let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
             let stored = folderStore.save(bookmark: bookmark, name: name, uri: url.absoluteString)
             pendingInvoke?.resolve(PickFolderResponseDTO(folder: folderDTO(stored)))
@@ -521,7 +521,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         var stale = false
         let url = try URL(
             resolvingBookmarkData: bookmark,
-            options: .withSecurityScope,
+            options: .withoutUI,
             relativeTo: nil,
             bookmarkDataIsStale: &stale
         )
@@ -531,14 +531,15 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
                 throw scopedStorageError(.permissionDenied, "Failed to access security-scoped resource for stale bookmark refresh")
             }
 
-            let refreshed = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+            let refreshed = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
             let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
             folderStore.update(id: folderId, bookmark: refreshed, name: name, uri: url.absoluteString)
-            url.stopAccessingSecurityScopedResource()
+            defer { url.stopAccessingSecurityScopedResource() }
+            return try block(url)
         }
 
         guard url.startAccessingSecurityScopedResource() else {
-            throw scopedStorageError(.permissionDenied, "Failed to access security-scoped resource")
+            throw scopedStorageError(.staleBookmark, "Failed to access security-scoped resource — folder may have been moved or deleted")
         }
 
         defer { url.stopAccessingSecurityScopedResource() }
@@ -639,6 +640,32 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         if FileManager.default.fileExists(atPath: url.path) {
             throw scopedStorageError(.alreadyExists, "Destination already exists: \(path)")
         }
+    }
+
+    private func coordinatedRead<T>(at url: URL, _ block: (URL) throws -> T) throws -> T {
+        var coordinatorError: NSError?
+        var result: T?
+        var blockError: Error?
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        coordinator.coordinate(
+            readingItemAt: url,
+            options: [],
+            error: &coordinatorError
+        ) { readingURL in
+            do {
+                result = try block(readingURL)
+            } catch {
+                blockError = error
+            }
+        }
+
+        if let coordinatorError {
+            throw coordinatorError
+        }
+        if let blockError {
+            throw blockError
+        }
+        return result!
     }
 
     private func coordinatedWrite(at url: URL, replace: Bool = false, _ block: (URL) throws -> Void) throws {

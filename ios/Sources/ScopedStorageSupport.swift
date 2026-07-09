@@ -13,6 +13,7 @@ enum ScopedStorageErrorCode: String {
     case ioError = "IO_ERROR"
     case nativeError = "NATIVE_ERROR"
     case invalidArgument = "INVALID_ARGUMENT"
+    case staleBookmark = "STALE_BOOKMARK"
 }
 
 struct ScopedStoragePluginError: LocalizedError {
