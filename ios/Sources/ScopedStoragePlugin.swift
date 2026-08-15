@@ -468,12 +468,10 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
             return
         }
 
-        guard url.startAccessingSecurityScopedResource() else {
-            pendingInvoke?.reject("\(scopedStorageNativeErrorPrefix):\(ScopedStorageErrorCode.permissionDenied.rawValue):Failed to access security-scoped resource")
-            pendingInvoke = nil
-            return
+        let accessStarted = url.startAccessingSecurityScopedResource()
+        if accessStarted {
+            defer { url.stopAccessingSecurityScopedResource() }
         }
-        defer { url.stopAccessingSecurityScopedResource() }
 
         do {
             let bookmark = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
@@ -527,22 +525,22 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         )
 
         if stale {
-            guard url.startAccessingSecurityScopedResource() else {
-                throw scopedStorageError(.permissionDenied, "Failed to access security-scoped resource for stale bookmark refresh")
+            let accessStarted = url.startAccessingSecurityScopedResource()
+            if accessStarted {
+                defer { url.stopAccessingSecurityScopedResource() }
             }
 
             let refreshed = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
             let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
             folderStore.update(id: folderId, bookmark: refreshed, name: name, uri: url.absoluteString)
-            defer { url.stopAccessingSecurityScopedResource() }
             return try block(url)
         }
 
-        guard url.startAccessingSecurityScopedResource() else {
-            throw scopedStorageError(.staleBookmark, "Failed to access security-scoped resource — folder may have been moved or deleted")
+        let accessStarted = url.startAccessingSecurityScopedResource()
+        if accessStarted {
+            defer { url.stopAccessingSecurityScopedResource() }
         }
 
-        defer { url.stopAccessingSecurityScopedResource() }
         return try block(url)
     }
 

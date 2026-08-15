@@ -40,6 +40,7 @@ pub struct FolderIdRequest {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 pub(crate) struct ListFoldersResponse {
     pub folders: Vec<FolderHandle>,
 }

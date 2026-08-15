@@ -1,6 +1,6 @@
 {
   "name": "tauri-plugin-scoped-storage-api",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "author": "Daniele Rolli",
   "description": "Guest-side bindings for the Tauri scoped storage plugin",
   "license": "MIT",
