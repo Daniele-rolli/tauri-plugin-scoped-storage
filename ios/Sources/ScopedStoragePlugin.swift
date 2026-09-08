@@ -469,9 +469,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         }
 
         let accessStarted = url.startAccessingSecurityScopedResource()
-        if accessStarted {
-            defer { url.stopAccessingSecurityScopedResource() }
-        }
+        defer { if accessStarted { url.stopAccessingSecurityScopedResource() } }
 
         do {
             let bookmark = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
@@ -526,9 +524,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
 
         if stale {
             let accessStarted = url.startAccessingSecurityScopedResource()
-            if accessStarted {
-                defer { url.stopAccessingSecurityScopedResource() }
-            }
+            defer { if accessStarted { url.stopAccessingSecurityScopedResource() } }
 
             let refreshed = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
             let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
@@ -537,9 +533,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         }
 
         let accessStarted = url.startAccessingSecurityScopedResource()
-        if accessStarted {
-            defer { url.stopAccessingSecurityScopedResource() }
-        }
+        defer { if accessStarted { url.stopAccessingSecurityScopedResource() } }
 
         return try block(url)
     }
