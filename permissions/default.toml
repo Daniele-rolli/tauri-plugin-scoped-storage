@@ -22,4 +22,5 @@ permissions = [
   "allow-rename",
   "allow-truncate",
   "allow-warm-folder",
+  "allow-warm-status",
 ]

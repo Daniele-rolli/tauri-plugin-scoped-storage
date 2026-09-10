@@ -131,6 +131,14 @@ pub struct WarmFolderResponse {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct WarmStatusResponse {
+    pub total: u64,
+    pub downloaded: u64,
+    pub pending: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StatRequest {
     pub folder_id: String,
     pub path: String,

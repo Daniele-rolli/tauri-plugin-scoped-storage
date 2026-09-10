@@ -73,6 +73,10 @@ impl<R: Runtime> ScopedStorage<R> {
         self.run_mobile("warmFolder", req)
     }
 
+    pub fn warm_status(&self, req: ReadDirRequest) -> Result<WarmStatusResponse, ScopedStorageError> {
+        self.run_mobile("warmStatus", req)
+    }
+
     pub fn stat(&self, req: StatRequest) -> Result<FileStat, ScopedStorageError> {
         self.run_mobile("stat", req)
     }

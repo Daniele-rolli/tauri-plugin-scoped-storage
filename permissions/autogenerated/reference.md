@@ -25,6 +25,7 @@ Default permissions for the plugin
 - `allow-rename`
 - `allow-truncate`
 - `allow-warm-folder`
+- `allow-warm-status`
 
 ## Permission Table
 
@@ -603,6 +604,32 @@ Enables the warm_folder command without any pre-configured scope.
 <td>
 
 Denies the warm_folder command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`scoped-storage:allow-warm-status`
+
+</td>
+<td>
+
+Enables the warm_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`scoped-storage:deny-warm-status`
+
+</td>
+<td>
+
+Denies the warm_status command without any pre-configured scope.
 
 </td>
 </tr>

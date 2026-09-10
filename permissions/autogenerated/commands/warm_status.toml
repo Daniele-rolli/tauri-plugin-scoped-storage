@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-warm-status"
+description = "Enables the warm_status command without any pre-configured scope."
+commands.allow = ["warm_status"]
+
+[[permission]]
+identifier = "deny-warm-status"
+description = "Denies the warm_status command without any pre-configured scope."
+commands.deny = ["warm_status"]

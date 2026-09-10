@@ -241,6 +241,19 @@ class ScopedStoragePlugin(private val activity: Activity) : Plugin(activity) {
     }
 
     @Command
+    fun warmStatus(invoke: Invoke) {
+        // Nothing to warm, so trivially complete.
+        invoke.parseArgs(ReadDirArgs::class.java)
+        ioScope.launch {
+            invoke.resolve(JSObject().apply {
+                put("total", 0)
+                put("downloaded", 0)
+                put("pending", 0)
+            })
+        }
+    }
+
+    @Command
     fun stat(invoke: Invoke) {
         val args = invoke.parseArgs(StatArgs::class.java)
         ioScope.launch {

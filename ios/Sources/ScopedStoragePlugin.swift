@@ -47,6 +47,12 @@ struct WarmFolderResponseDTO: Encodable {
     let warmed: UInt64
 }
 
+struct WarmStatusResponseDTO: Encodable {
+    let total: Int
+    let downloaded: Int
+    let pending: Int
+}
+
 struct ExistsResponseDTO: Encodable {
     let exists: Bool
 }
@@ -238,6 +244,20 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
                 return self.kickOffUbiquitousDownloads(under: dir)
             }
             return WarmFolderResponseDTO(warmed: warmed)
+        }
+    }
+
+    @objc public func warmStatus(_ invoke: Invoke) {
+        // Poll endpoint for the gated prefetch: how many ubiquitous files are
+        // local yet. Runs on the invoke thread, never the main thread.
+        run(invoke) {
+            let args = try invoke.parseArgs(ReadDirArgs.self)
+            let files = try self.withFolderURL(folderId: args.folderId) { folderURL in
+                let dir = try args.path.map { try self.resolveChildURL(base: folderURL, relPath: $0, isDirectory: true) } ?? folderURL
+                return self.ubiquitousFiles(under: dir)
+            }
+            let pending = files.filter { !$0.downloaded }.count
+            return WarmStatusResponseDTO(total: files.count, downloaded: files.count - pending, pending: pending)
         }
     }
 
@@ -519,32 +539,41 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         pendingInvoke = nil
     }
 
-    /// Enqueue downloads for all not-yet-current ubiquitous files under `dir`.
-    /// Returns immediately after kicking them off; does not wait.
-    private func kickOffUbiquitousDownloads(under dir: URL) -> UInt64 {
+    /// All ubiquitous files under `dir` with their download state.
+    private func ubiquitousFiles(under dir: URL) -> [(url: URL, downloaded: Bool)] {
         let keys: Set<URLResourceKey> = [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey, .isDirectoryKey]
         guard let enumerator = FileManager.default.enumerator(
             at: dir,
             includingPropertiesForKeys: Array(keys),
             options: [.skipsHiddenFiles]
         ) else {
-            return 0
+            return []
         }
-        var kicked: UInt64 = 0
+        var out: [(URL, Bool)] = []
         for case let url as URL in enumerator {
             guard let values = try? url.resourceValues(forKeys: keys),
                 values.isUbiquitousItem == true,
-                values.isDirectory != true,
-                values.ubiquitousItemDownloadingStatus != .current else {
+                values.isDirectory != true else {
                 continue
             }
-            try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+            out.append((url, values.ubiquitousItemDownloadingStatus == .current))
+        }
+        return out
+    }
+
+    /// Enqueue downloads for all not-yet-current ubiquitous files under `dir`.
+    /// Returns immediately after kicking them off; does not wait.
+    private func kickOffUbiquitousDownloads(under dir: URL) -> UInt64 {
+        var kicked: UInt64 = 0
+        for file in ubiquitousFiles(under: dir) where !file.downloaded {
+            try? FileManager.default.startDownloadingUbiquitousItem(at: file.url)
             kicked += 1
         }
         return kicked
     }
 
-    private func ensureUbiquitousItemDownloaded(at url: URL, timeout: TimeInterval = 60) throws {        let keys: Set<URLResourceKey> = [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey]
+    private func ensureUbiquitousItemDownloaded(at url: URL, timeout: TimeInterval = 60) throws {
+        let keys: Set<URLResourceKey> = [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey]
         guard let values = try? url.resourceValues(forKeys: keys), values.isUbiquitousItem == true else {
             return
         }

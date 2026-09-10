@@ -559,6 +559,18 @@
           "markdownDescription": "Denies the warm_folder command without any pre-configured scope."
         },
         {
+          "description": "Enables the warm_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-warm-status",
+          "markdownDescription": "Enables the warm_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the warm_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-warm-status",
+          "markdownDescription": "Denies the warm_status command without any pre-configured scope."
+        },
+        {
           "description": "Enables the write_file command without any pre-configured scope.",
           "type": "string",
           "const": "allow-write-file",
@@ -583,10 +595,10 @@
           "markdownDescription": "Denies the write_text_file command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-pick-folder`\n- `allow-forget-folder`\n- `allow-list-folders`\n- `allow-get-folder-info`\n- `allow-read-dir`\n- `allow-stat`\n- `allow-exists`\n- `allow-read-file`\n- `allow-write-file`\n- `allow-read-text-file`\n- `allow-read-text-file-lines`\n- `allow-write-text-file`\n- `allow-append-file`\n- `allow-mkdir`\n- `allow-remove-file`\n- `allow-remove-dir`\n- `allow-copy`\n- `allow-move`\n- `allow-rename`\n- `allow-truncate`\n- `allow-warm-folder`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-pick-folder`\n- `allow-forget-folder`\n- `allow-list-folders`\n- `allow-get-folder-info`\n- `allow-read-dir`\n- `allow-stat`\n- `allow-exists`\n- `allow-read-file`\n- `allow-write-file`\n- `allow-read-text-file`\n- `allow-read-text-file-lines`\n- `allow-write-text-file`\n- `allow-append-file`\n- `allow-mkdir`\n- `allow-remove-file`\n- `allow-remove-dir`\n- `allow-copy`\n- `allow-move`\n- `allow-rename`\n- `allow-truncate`\n- `allow-warm-folder`\n- `allow-warm-status`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-pick-folder`\n- `allow-forget-folder`\n- `allow-list-folders`\n- `allow-get-folder-info`\n- `allow-read-dir`\n- `allow-stat`\n- `allow-exists`\n- `allow-read-file`\n- `allow-write-file`\n- `allow-read-text-file`\n- `allow-read-text-file-lines`\n- `allow-write-text-file`\n- `allow-append-file`\n- `allow-mkdir`\n- `allow-remove-file`\n- `allow-remove-dir`\n- `allow-copy`\n- `allow-move`\n- `allow-rename`\n- `allow-truncate`\n- `allow-warm-folder`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-pick-folder`\n- `allow-forget-folder`\n- `allow-list-folders`\n- `allow-get-folder-info`\n- `allow-read-dir`\n- `allow-stat`\n- `allow-exists`\n- `allow-read-file`\n- `allow-write-file`\n- `allow-read-text-file`\n- `allow-read-text-file-lines`\n- `allow-write-text-file`\n- `allow-append-file`\n- `allow-mkdir`\n- `allow-remove-file`\n- `allow-remove-dir`\n- `allow-copy`\n- `allow-move`\n- `allow-rename`\n- `allow-truncate`\n- `allow-warm-folder`\n- `allow-warm-status`"
         }
       ]
     }

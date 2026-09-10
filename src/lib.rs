@@ -53,6 +53,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::rename,
             commands::truncate,
             commands::warm_folder,
+            commands::warm_status,
         ])
         .build()
 }

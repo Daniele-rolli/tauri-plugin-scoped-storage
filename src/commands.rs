@@ -274,6 +274,16 @@ pub fn warm_folder<R: Runtime>(
     app.state::<ScopedStorage<R>>().inner().warm_folder(req)
 }
 
+#[tauri::command]
+pub fn warm_status<R: Runtime>(
+    app: AppHandle<R>,
+    mut req: ReadDirRequest,
+) -> Result<WarmStatusResponse, ScopedStorageError> {
+    req.folder_id = normalize_folder_id(&req.folder_id)?;
+    req.path = normalize_optional_path(req.path.take())?;
+    app.state::<ScopedStorage<R>>().inner().warm_status(req)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{ensure_distinct_transfer, normalize_folder_id, normalize_optional_path};

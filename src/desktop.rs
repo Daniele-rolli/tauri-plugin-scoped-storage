@@ -43,6 +43,10 @@ impl<R: Runtime> ScopedStorage<R> {
         Ok(WarmFolderResponse { warmed: 0 })
     }
 
+    pub fn warm_status(&self, _req: ReadDirRequest) -> Result<WarmStatusResponse, ScopedStorageError> {
+        Ok(WarmStatusResponse { total: 0, downloaded: 0, pending: 0 })
+    }
+
     pub fn stat(&self, _req: StatRequest) -> Result<FileStat, ScopedStorageError> {
         Err(ScopedStorageError::Unsupported)
     }

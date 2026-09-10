@@ -20,6 +20,7 @@ const COMMANDS: &[&str] = &[
     "rename",
     "truncate",
     "warm_folder",
+    "warm_status",
 ];
 
 fn main() {
