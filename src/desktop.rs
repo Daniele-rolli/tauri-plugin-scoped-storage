@@ -38,6 +38,11 @@ impl<R: Runtime> ScopedStorage<R> {
         Err(ScopedStorageError::Unsupported)
     }
 
+    pub fn warm_folder(&self, _req: ReadDirRequest) -> Result<WarmFolderResponse, ScopedStorageError> {
+        // Local files need no warm-up.
+        Ok(WarmFolderResponse { warmed: 0 })
+    }
+
     pub fn stat(&self, _req: StatRequest) -> Result<FileStat, ScopedStorageError> {
         Err(ScopedStorageError::Unsupported)
     }

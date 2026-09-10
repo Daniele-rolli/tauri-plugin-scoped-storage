@@ -43,6 +43,10 @@ struct ReadDirResponseDTO: Encodable {
     let entries: [DirEntryDTO]
 }
 
+struct WarmFolderResponseDTO: Encodable {
+    let warmed: UInt64
+}
+
 struct ExistsResponseDTO: Encodable {
     let exists: Bool
 }
@@ -219,6 +223,21 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
                 }
             }
             return ReadDirResponseDTO(entries: entries)
+        }
+    }
+
+    @objc public func warmFolder(_ invoke: Invoke) {
+        // Fire-and-forget iCloud warm-up: kick off downloads for every
+        // not-yet-current ubiquitous file under the folder and return at once.
+        // Later reads still block per file as needed, but the downloads run
+        // in parallel natively instead of serializing behind sequential invokes.
+        run(invoke) {
+            let args = try invoke.parseArgs(ReadDirArgs.self)
+            let warmed = try self.withFolderURL(folderId: args.folderId) { folderURL in
+                let dir = try args.path.map { try self.resolveChildURL(base: folderURL, relPath: $0, isDirectory: true) } ?? folderURL
+                return self.kickOffUbiquitousDownloads(under: dir)
+            }
+            return WarmFolderResponseDTO(warmed: warmed)
         }
     }
 
@@ -500,8 +519,32 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         pendingInvoke = nil
     }
 
-    private func ensureUbiquitousItemDownloaded(at url: URL, timeout: TimeInterval = 60) throws {
-        let keys: Set<URLResourceKey> = [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey]
+    /// Enqueue downloads for all not-yet-current ubiquitous files under `dir`.
+    /// Returns immediately after kicking them off; does not wait.
+    private func kickOffUbiquitousDownloads(under dir: URL) -> UInt64 {
+        let keys: Set<URLResourceKey> = [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey, .isDirectoryKey]
+        guard let enumerator = FileManager.default.enumerator(
+            at: dir,
+            includingPropertiesForKeys: Array(keys),
+            options: [.skipsHiddenFiles]
+        ) else {
+            return 0
+        }
+        var kicked: UInt64 = 0
+        for case let url as URL in enumerator {
+            guard let values = try? url.resourceValues(forKeys: keys),
+                values.isUbiquitousItem == true,
+                values.isDirectory != true,
+                values.ubiquitousItemDownloadingStatus != .current else {
+                continue
+            }
+            try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+            kicked += 1
+        }
+        return kicked
+    }
+
+    private func ensureUbiquitousItemDownloaded(at url: URL, timeout: TimeInterval = 60) throws {        let keys: Set<URLResourceKey> = [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey]
         guard let values = try? url.resourceValues(forKeys: keys), values.isUbiquitousItem == true else {
             return
         }

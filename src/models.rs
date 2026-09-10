@@ -120,6 +120,15 @@ pub struct ReadDirResponse {
     pub entries: Vec<DirEntry>,
 }
 
+/// Fire-and-forget iCloud warm-up: number of downloads kicked off. Reads that
+/// follow still block per file as needed, but downloads proceed in parallel
+/// natively instead of serializing behind sequential invokes.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WarmFolderResponse {
+    pub warmed: u64,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatRequest {

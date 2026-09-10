@@ -24,6 +24,7 @@ Default permissions for the plugin
 - `allow-move`
 - `allow-rename`
 - `allow-truncate`
+- `allow-warm-folder`
 
 ## Permission Table
 
@@ -576,6 +577,32 @@ Enables the truncate command without any pre-configured scope.
 <td>
 
 Denies the truncate command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`scoped-storage:allow-warm-folder`
+
+</td>
+<td>
+
+Enables the warm_folder command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`scoped-storage:deny-warm-folder`
+
+</td>
+<td>
+
+Denies the warm_folder command without any pre-configured scope.
 
 </td>
 </tr>

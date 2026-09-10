@@ -232,6 +232,15 @@ class ScopedStoragePlugin(private val activity: Activity) : Plugin(activity) {
     }
 
     @Command
+    fun warmFolder(invoke: Invoke) {
+        // No on-demand cloud materialization behind SAF reads: nothing to warm.
+        invoke.parseArgs(ReadDirArgs::class.java)
+        ioScope.launch {
+            invoke.resolve(JSObject().apply { put("warmed", 0) })
+        }
+    }
+
+    @Command
     fun stat(invoke: Invoke) {
         val args = invoke.parseArgs(StatArgs::class.java)
         ioScope.launch {
