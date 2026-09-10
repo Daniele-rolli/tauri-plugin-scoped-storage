@@ -468,24 +468,58 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
             return
         }
 
-        let accessStarted = url.startAccessingSecurityScopedResource()
-        defer { if accessStarted { url.stopAccessingSecurityScopedResource() } }
+        // iCloud Drive items may exist only in the cloud with nothing on disk,
+        // in which case bookmarking fails with "file doesn't exist".
+        // Materialize first, off the main thread since it can take a while.
+        DispatchQueue.global(qos: .userInitiated).async {
+            let accessStarted = url.startAccessingSecurityScopedResource()
+            defer { if accessStarted { url.stopAccessingSecurityScopedResource() } }
 
-        do {
-            let bookmark = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
-            let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
-            let stored = folderStore.save(bookmark: bookmark, name: name, uri: url.absoluteString)
-            pendingInvoke?.resolve(PickFolderResponseDTO(folder: folderDTO(stored)))
-        } catch {
-            pendingInvoke?.reject(scopedStorageRejectMessage(for: error))
+            do {
+                try self.ensureUbiquitousItemDownloaded(at: url)
+                let bookmark = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
+                let name = (try? url.resourceValues(forKeys: [.nameKey]).name) ?? url.lastPathComponent
+                let stored = self.folderStore.save(bookmark: bookmark, name: name, uri: url.absoluteString)
+                let response = PickFolderResponseDTO(folder: self.folderDTO(stored))
+                DispatchQueue.main.async {
+                    self.pendingInvoke?.resolve(response)
+                    self.pendingInvoke = nil
+                }
+            } catch {
+                let message = scopedStorageRejectMessage(for: error)
+                DispatchQueue.main.async {
+                    self.pendingInvoke?.reject(message)
+                    self.pendingInvoke = nil
+                }
+            }
         }
-
-        pendingInvoke = nil
     }
 
     public func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
         pendingInvoke?.reject("\(scopedStorageNativeErrorPrefix):\(ScopedStorageErrorCode.cancelled.rawValue):User cancelled")
         pendingInvoke = nil
+    }
+
+    private func ensureUbiquitousItemDownloaded(at url: URL, timeout: TimeInterval = 60) throws {
+        let keys: Set<URLResourceKey> = [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey]
+        guard let values = try? url.resourceValues(forKeys: keys), values.isUbiquitousItem == true else {
+            return
+        }
+        guard values.ubiquitousItemDownloadingStatus != .current else {
+            return
+        }
+
+        try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            let status = (try? url.resourceValues(forKeys: [.ubiquitousItemDownloadingStatusKey]))?.ubiquitousItemDownloadingStatus
+            if status == .current {
+                return
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+        throw scopedStorageError(.ioError, "iCloud folder is still downloading. Open it in Files until it finishes, then pick it again.")
     }
 
     private func run<T: Encodable>(_ invoke: Invoke, _ block: () throws -> T) {
