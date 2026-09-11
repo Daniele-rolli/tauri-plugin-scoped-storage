@@ -164,6 +164,10 @@ struct FolderIdArgs: Decodable {
 final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
     private var pendingInvoke: Invoke?
     private let folderStore = IOSFolderStore()
+    /// All file IO runs here. Plugin methods arrive on the main thread, and a
+    /// coordinated read of a not-yet-downloaded iCloud file blocks until the
+    /// download finishes — running that on main froze the app for whole vaults.
+    private let ioQueue = DispatchQueue(label: "app.scoped-storage.io", qos: .utility, attributes: .concurrent)
 
     @objc public func pickFolder(_ invoke: Invoke) {
         DispatchQueue.main.async {
@@ -249,7 +253,7 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
 
     @objc public func warmStatus(_ invoke: Invoke) {
         // Poll endpoint for the gated prefetch: how many ubiquitous files are
-        // local yet. Runs on the invoke thread, never the main thread.
+        // local yet. Runs on the plugin IO queue via run(), never the main thread.
         run(invoke) {
             let args = try invoke.parseArgs(ReadDirArgs.self)
             let files = try self.withFolderURL(folderId: args.folderId) { folderURL in
@@ -594,20 +598,24 @@ final class ScopedStoragePlugin: Plugin, UIDocumentPickerDelegate {
         throw scopedStorageError(.ioError, "iCloud folder is still downloading. Open it in Files until it finishes, then pick it again.")
     }
 
-    private func run<T: Encodable>(_ invoke: Invoke, _ block: () throws -> T) {
-        do {
-            invoke.resolve(try block())
-        } catch {
-            invoke.reject(scopedStorageRejectMessage(for: error))
+    private func run<T: Encodable>(_ invoke: Invoke, _ block: @escaping () throws -> T) {
+        ioQueue.async {
+            do {
+                invoke.resolve(try block())
+            } catch {
+                invoke.reject(scopedStorageRejectMessage(for: error))
+            }
         }
     }
 
-    private func runVoid(_ invoke: Invoke, _ block: () throws -> Void) {
-        do {
-            try block()
-            invoke.resolve()
-        } catch {
-            invoke.reject(scopedStorageRejectMessage(for: error))
+    private func runVoid(_ invoke: Invoke, _ block: @escaping () throws -> Void) {
+        ioQueue.async {
+            do {
+                try block()
+                invoke.resolve()
+            } catch {
+                invoke.reject(scopedStorageRejectMessage(for: error))
+            }
         }
     }
 
