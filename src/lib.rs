@@ -16,9 +16,22 @@ use tauri::{
 };
 
 #[cfg(desktop)]
-use desktop::ScopedStorage;
+pub use desktop::ScopedStorage;
 #[cfg(mobile)]
-use mobile::ScopedStorage;
+pub use mobile::ScopedStorage;
+
+/// Access the managed `ScopedStorage` from any Tauri `Manager`
+/// (`AppHandle`, `App`, `Window`). Mirrors `PdfRenderExt` in
+/// `vendor/tauri-plugin-pdf-render`.
+pub trait ScopedStorageExt<R: Runtime> {
+    fn scoped_storage(&self) -> &ScopedStorage<R>;
+}
+
+impl<R: Runtime, T: Manager<R>> ScopedStorageExt<R> for T {
+    fn scoped_storage(&self) -> &ScopedStorage<R> {
+        self.state::<ScopedStorage<R>>().inner()
+    }
+}
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("scoped-storage")
